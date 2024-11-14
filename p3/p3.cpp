@@ -1,6 +1,3 @@
-#include <simulation.h>
-#include <world_type.h>
-
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
@@ -8,10 +5,14 @@
 #include <sstream>
 #include <string>
 
+#include "simulation.h"
+#include "world_type.h"
+
 int main(int argc, char* argv[]) {
-  std::ifstream input_world, input_summary;
-  input_world.open(argv[2]);
-  input_summary.open(argv[1]);
-  input_world.close();
-  input_summary.close();
+  // check whether input is legal and well-prepared
+  check_argc(argc);
+  check_round(atoi(argv[3]));
+  check_open_world(std::string(argv[2]), check_open_file);
+  check_open_summary(std::string(argv[1]), check_open_file);
+  world_t world;
 }
