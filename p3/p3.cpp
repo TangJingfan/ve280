@@ -15,4 +15,7 @@ int main(int argc, char* argv[]) {
   check_open_world(std::string(argv[2]), check_open_file);
   check_open_summary(std::string(argv[1]), check_open_file);
   world_t world;
+  std::cout << init_world(world, "tests/species",
+                          "tests/world-tests/overlap-world")
+            << std::endl;
 }

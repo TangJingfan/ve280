@@ -82,16 +82,16 @@ int read_file_lines(const std::string& filename) {
 }
 
 int read_file_lines_until_empty(const std::string& filename) {
-  std::ifstream file(filename);
+  std::ifstream read_file(filename);
   int line_count = 0;
   std::string line;
-  while (std::getline(file, line)) {
+  while (std::getline(read_file, line)) {
     if (line.empty()) {
       break;
     }
     ++line_count;
   }
-  file.close();
+  read_file.close();
   return line_count;
 }
 
@@ -105,6 +105,39 @@ void check_program_lines(const std::string& filename,
               << std::endl;
     exit(1);
   }
+}
+
+direction_t string_to_direction(const std::string& direction) {
+  for (int i = 0; i < sizeof(directName) / sizeof(directName[0]); i++) {
+    if (directName[i] == direction) {
+      return static_cast<direction_t>(i);
+    }
+  }
+  std::cout << "Error: Direction " << direction << " is nor recognized!"
+            << std::endl;
+  exit(1);
+}
+
+opcode_t string_to_opcode(const std::string& command) {
+  for (int i = 0; i < sizeof(opName) / sizeof(opName[0]); ++i) {
+    if (opName[i] == command) {
+      return static_cast<opcode_t>(i);
+    }
+  }
+  std::cout << "Error: Instruction " << command << " is not recognized!"
+            << std::endl;
+  exit(1);
+}
+
+int string_to_species(const std::string& species_name, species_t species[],
+                      unsigned int species_nums) {
+  for (int i = 0; i < species_nums; i++) {
+    if (species_name == species[i].name) {
+      return i;
+    }
+  }
+  std::cout << "Error: Species " << species_name << " not found!" << std::endl;
+  exit(1);
 }
 
 bool init_world(world_t& world, const std::string& summary_file,
@@ -145,15 +178,20 @@ bool init_world(world_t& world, const std::string& summary_file,
            !program_line.empty()) {
       std::istringstream program_line_extraction(program_line);
       std::string operation;
-      int op_address = 0;
+      unsigned int op_address = 0;
       program_line_extraction >> operation >> op_address;
       instruction_t program = {string_to_opcode(operation), op_address};
       target.program[program_count] = program;
       program_count++;
     }
-    target.programSize = program_count + 1;
+    target.programSize = program_count;
     world.species[species_count] = target;
     species_count++;
+  }
+  if (species_count > MAXSPECIES) {
+    std::cout << "Error: Too many species!" << std::endl;
+    std::cout << "Maximal number of species is " << MAXSPECIES << std::endl;
+    exit(1);
   }
   read_summary.close();
   std::string world_line;
@@ -175,37 +213,45 @@ bool init_world(world_t& world, const std::string& summary_file,
     world.creatures[creature_count] = creature;
     creature_count++;
   }
-}
-
-direction_t string_to_direction(const std::string& direction) {
-  for (int i = 0; i < sizeof(directName) / sizeof(directName[0]); i++) {
-    if (directName[i] == direction) {
-      return static_cast<direction_t>(i);
+  for (int k = 0; k < world.grid.height; k++) {
+    for (int l = 0; l < world.grid.width; l++) {
+      world.grid.squares[k][l] = nullptr;
     }
   }
-  std::cout << "Error: Direction " << direction << " is nor recognized!"
-            << std::endl;
-  exit(1);
-}
 
-opcode_t string_to_opcode(const std::string& command) {
-  for (int i = 0; i < sizeof(opName) / sizeof(opName[0]); ++i) {
-    if (opName[i] == command) {
-      return static_cast<opcode_t>(i);
+  for (int j = 0; j < world.numCreatures; j++) {
+    if (world.grid.squares[world.creatures[j].location.r - 1]
+                          [world.creatures[j].location.c - 1] != nullptr) {
+      std::cout << "Error: Creature (" << world.creatures[j].species->name
+                << " " << directName[world.creatures[j].direction] << " "
+                << world.creatures[j].location.r << " "
+                << world.creatures[j].location.c << ") overlaps with creature ("
+                << world.grid
+                       .squares[world.creatures[j].location.r - 1]
+                               [world.creatures[j].location.c - 1]
+                       ->species->name
+                << " "
+                << directName[world.grid
+                                  .squares[world.creatures[j].location.r - 1]
+                                          [world.creatures[j].location.c - 1]
+                                  ->direction]
+                << " " << world.creatures[j].location.r << " "
+                << world.creatures[j].location.c << ")!" << std::endl;
+      exit(1);
     }
-  }
-  std::cout << "Error: Instruction " << command << " is not recognized!"
-            << std::endl;
-  exit(1);
-}
-
-int string_to_species(const std::string& species_name, species_t species[],
-                      unsigned int species_nums) {
-  for (int i = 0; i < species_nums; i++) {
-    if (species_name == species[i].name) {
-      return i;
+    if (world.creatures[j].location.r >= world.grid.height ||
+        world.creatures[j].location.c >= world.grid.width) {
+      std::cout << "Error: Creature (" << world.creatures[j].species->name
+                << " " << directName[world.creatures[j].direction] << " "
+                << world.creatures[j].location.r << " "
+                << world.creatures[j].location.c << ") is out of bound!"
+                << std::endl;
+      std::cout << "The grid size is " << world.grid.height << "-by-"
+                << world.grid.width << "." << std::endl;
+      exit(1);
     }
+    world.grid.squares[world.creatures[j].location.r - 1]
+                      [world.creatures[j].location.c - 1] = &world.creatures[j];
   }
-  std::cout << "Error: Species " << species_name << " not found!" << std::endl;
-  exit(1);
+  return true;
 }
