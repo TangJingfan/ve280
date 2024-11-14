@@ -23,7 +23,6 @@ direction_t string_to_direction(const std::string& direction);
 opcode_t string_to_opcode(const std::string& command);
 int string_to_species(const std::string& species_name, species_t species[],
                       unsigned int species_nums);
-void init_world_grid_size(world_t& world, const std::string& world_file);
 void init_world_number_info(world_t& world, const std::string& summary_file,
                             const std::string& world_file);
 void check_species_num(int species_count);
@@ -40,4 +39,11 @@ void report_out_of_bounds_error(const creature_t& creature, const grid_t& grid);
 void place_creatures_in_grid(world_t& world);
 bool init_world(world_t& world, const std::string& summary_file,
                 const std::string& world_file);
+void init_world_grid_size(world_t& world, const std::string& world_file);
+void init_world_numbers(world_t& world, const std::string& summary_file,
+                        const std::string& world_file);
+void init_world_species(world_t world, const std::string summary_file);
+void init_world_creature(world_t world, const std::string world_file);
+bool new_init_world(world_t& world, const std::string& summary_file,
+                    const std::string& world_file);
 #endif

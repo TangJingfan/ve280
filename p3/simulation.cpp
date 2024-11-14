@@ -140,6 +140,144 @@ int string_to_species(const std::string& species_name, species_t species[],
   exit(1);
 }
 
+void init_world_grid_size(world_t& world, const std::string& world_file) {
+  std::ifstream read_world;
+  read_world.open(world_file);
+  // get height and width of this world
+  int height = read_height_from_line(read_world);
+  int width = read_width_from_line(read_world);
+  world.grid.height = height;
+  world.grid.width = width;
+  read_world.close();
+}
+
+void init_world_numbers(world_t& world, const std::string& summary_file,
+                        const std::string& world_file) {
+  world.numSpecies = read_file_lines(summary_file) - 1;
+  world.numCreatures = read_file_lines(world_file) - 2;
+}
+
+void init_world_species(world_t world, const std::string summary_file) {
+  std::ifstream read_summary;
+  read_summary.open(summary_file);
+  // get the directory of program
+  std::string directory;
+  getline(read_summary, directory);
+  std::string species_name;
+  instruction_t program[MAXPROGRAM];
+  int species_count = 0;
+  // finish target species
+  while (getline(read_summary, species_name)) {
+    species_t target;
+    target.name = species_name;
+    std::string program_file_name = directory + '/' + species_name;
+    std::ifstream read_program_file;
+    read_program_file.open(program_file_name);
+    check_open_file(program_file_name);
+    read_program_file.close();
+    check_program_lines(program_file_name, species_name);
+    std::ifstream read_program_file_again;
+    read_program_file_again.open(program_file_name);
+    std::string program_line;
+    int program_count = 0;
+    while (getline(read_program_file_again, program_line) &&
+           !program_line.empty()) {
+      std::istringstream program_line_extraction(program_line);
+      std::string operation;
+      unsigned int op_address = 0;
+      program_line_extraction >> operation >> op_address;
+      instruction_t program = {string_to_opcode(operation), op_address};
+      target.program[program_count] = program;
+      program_count++;
+    }
+    target.programSize = program_count;
+    world.species[species_count] = target;
+    species_count++;
+  }
+  if (species_count > MAXSPECIES) {
+    std::cout << "Error: Too many species!" << std::endl;
+    std::cout << "Maximal number of species is " << MAXSPECIES << std::endl;
+    exit(1);
+  }
+  read_summary.close();
+}
+
+void init_world_creature(world_t world, const std::string world_file) {
+  std::string world_line;
+  std::ifstream read_world;
+  read_world.open(world_file);
+  getline(read_world, world_line);
+  getline(read_world, world_line);
+  int creature_count = 0;
+  while (getline(read_world, world_line)) {
+    std::string name;
+    std::string direction;
+    int height_location, width_location;
+    std::istringstream world_info_extraction(world_line);
+    world_info_extraction >> name >> direction >> height_location >>
+        width_location;
+    creature_t creature;
+    creature.programID = 0;
+    creature.direction = string_to_direction(direction);
+    creature.species =
+        &world
+             .species[string_to_species(name, world.species, world.numSpecies)];
+    creature.location = {height_location, width_location};
+    world.creatures[creature_count] = creature;
+    creature_count++;
+  }
+  for (int k = 0; k < world.grid.height; k++) {
+    for (int l = 0; l < world.grid.width; l++) {
+      world.grid.squares[k][l] = nullptr;
+    }
+  }
+
+  for (int j = 0; j < world.numCreatures; j++) {
+    if (world.grid.squares[world.creatures[j].location.r - 1]
+                          [world.creatures[j].location.c - 1] != nullptr) {
+      std::cout << "Error: Creature (" << world.creatures[j].species->name
+                << " " << directName[world.creatures[j].direction] << " "
+                << world.creatures[j].location.r << " "
+                << world.creatures[j].location.c << ") overlaps with creature ("
+                << world.grid
+                       .squares[world.creatures[j].location.r - 1]
+                               [world.creatures[j].location.c - 1]
+                       ->species->name
+                << " "
+                << directName[world.grid
+                                  .squares[world.creatures[j].location.r - 1]
+                                          [world.creatures[j].location.c - 1]
+                                  ->direction]
+                << " " << world.creatures[j].location.r << " "
+                << world.creatures[j].location.c << ")!" << std::endl;
+      exit(1);
+    }
+    if (world.creatures[j].location.r >= world.grid.height ||
+        world.creatures[j].location.c >= world.grid.width) {
+      std::cout << "Error: Creature (" << world.creatures[j].species->name
+                << " " << directName[world.creatures[j].direction] << " "
+                << world.creatures[j].location.r << " "
+                << world.creatures[j].location.c << ") is out of bound!"
+                << std::endl;
+      std::cout << "The grid size is " << world.grid.height << "-by-"
+                << world.grid.width << "." << std::endl;
+      exit(1);
+    }
+    world.grid.squares[world.creatures[j].location.r - 1]
+                      [world.creatures[j].location.c - 1] = &world.creatures[j];
+  }
+}
+
+bool new_init_world(world_t& world, const std::string& summary_file,
+                    const std::string& world_file) {
+  init_world_grid_size(world, world_file);
+  init_world_numbers(world, summary_file, world_file);
+  std::cout << world.numSpecies << std::endl;
+  init_world_species(world, summary_file);
+  init_world_creature(world, world_file);
+  return true;
+}
+
 bool init_world(world_t& world, const std::string& summary_file,
                 const std::string& world_file) {
   std::ifstream read_world;
