@@ -26,5 +26,14 @@ int string_to_species(const std::string& species_name, species_t species[],
 bool init_world(world_t& world, const std::string& summary_file,
                 const std::string& world_file);
 void check_creatures_legal(world_t world);
-void check_species_num(int num);
+void check_species_num(unsigned int num);
+void print_grid(const grid_t& grid);
+void left(creature_t& target);
+void ifempty(creature_t& target, grid_t& grid, unsigned int step);
+void infect(creature_t& target, grid_t& grid, species_t list[]);
+void right(creature_t& target);
+void hop(creature_t& target, grid_t& grid);
+void take_action(creature_t& target, world_t& world);
+void simulate(world_t& world, int rounds, bool print_verbose);
+std::string species_name_to_string(creature_t& target);
 #endif

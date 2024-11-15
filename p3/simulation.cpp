@@ -39,8 +39,8 @@ void check_open_world(const std::string& world_file,
 }
 
 void check_open_summary(const std::string& summary_file,
-                        void (*check_open_file)(const std::string& file)) {
-  check_open_file(summary_file);
+                        void (*fn)(const std::string& file)) {
+  fn(summary_file);
 }
 
 int read_height_from_line(std::ifstream& file) {
@@ -72,13 +72,14 @@ int read_width_from_line(std::ifstream& file) {
 }
 
 int read_file_lines(const std::string& filename) {
-  std::ifstream file(filename);
+  std::ifstream read_file;
+  read_file.open(filename);
   int line_number = 0;
   std::string line;
-  while (std::getline(file, line)) {
+  while (std::getline(read_file, line)) {
     ++line_number;
   }
-  file.close();
+  read_file.close();
   return line_number;
 }
 
@@ -133,6 +134,11 @@ opcode_t string_to_opcode(const std::string& command) {
   exit(1);
 }
 
+std::string species_name_to_string(creature_t& target) {
+  return target.species->name.substr(0, 2) + "_" +
+         directShortName[target.direction];
+}
+
 void check_creature_num(unsigned int num) {
   if (num > MAXCREATURES) {
     std::cout << "Error: Too many creatures!" << std::endl;
@@ -140,6 +146,7 @@ void check_creature_num(unsigned int num) {
               << std::endl;
   }
 }
+
 int string_to_species(const std::string& species_name, species_t species[],
                       unsigned int species_nums) {
   for (unsigned int i = 0; i < species_nums; i++) {
@@ -163,26 +170,24 @@ void check_creatures_legal(world_t world) {
   for (unsigned int j = 0; j < world.numCreatures; j++) {
     int row = world.creatures[j].location.r;
     int col = world.creatures[j].location.c;
-    if (row >= (int)world.grid.height || col >= (int)world.grid.width ||
-        row < 0 || col < 0) {
-      std::cout << "Error: Creature (" << world.creatures[j].species->name
-                << " " << directName[world.creatures[j].direction] << " "
-                << world.creatures[j].location.r << " "
-                << world.creatures[j].location.c << ") is out of bound!"
-                << std::endl;
+    std::string name = world.creatures[j].species->name;
+    std::string direction = directName[world.creatures[j].direction];
+    // check out of bound
+    if (row >= static_cast<int>(world.grid.height) ||
+        col >= static_cast<int>(world.grid.width) || row < 0 || col < 0) {
+      std::cout << "Error: Creature (" << name << " " << direction << " " << row
+                << " " << col << ") is out of bound!" << std::endl;
       std::cout << "The grid size is " << world.grid.height << "-by-"
                 << world.grid.width << "." << std::endl;
       exit(1);
     }
+    // check overlap
     if (world.grid.squares[row][col] != nullptr) {
-      std::cout << "Error: Creature (" << world.creatures[j].species->name
-                << " " << directName[world.creatures[j].direction] << " "
-                << world.creatures[j].location.r << " "
-                << world.creatures[j].location.c << ") overlaps with creature ("
+      std::cout << "Error: Creature (" << name << " " << direction << " " << row
+                << " " << col << ") overlaps with creature ("
                 << world.grid.squares[row][col]->species->name << " "
                 << directName[world.grid.squares[row][col]->direction] << " "
-                << world.creatures[j].location.r << " "
-                << world.creatures[j].location.c << ")!" << std::endl;
+                << row << " " << col << ")!" << std::endl;
       exit(1);
     }
     world.grid.squares[row][col] = &world.creatures[j];
@@ -250,7 +255,7 @@ bool init_world(world_t& world, const std::string& summary_file,
     world_info_extraction >> name >> direction >> height_location >>
         width_location;
     creature_t creature;
-    creature.programID = 0;
+    creature.programID = 1;
     creature.direction = string_to_direction(direction);
     int species_index =
         string_to_species(name, world.species, world.numSpecies);
@@ -267,5 +272,280 @@ bool init_world(world_t& world, const std::string& summary_file,
     }
   }
   check_creatures_legal(world);
+  // put creatures into grid
+  for (unsigned int num = 0; num < world.numCreatures; num++) {
+    world.grid.squares[world.creatures[num].location.r]
+                      [world.creatures[num].location.c] = &world.creatures[num];
+  }
+
   return true;
+}
+
+bool check_point_inside(int& row, int& col, grid_t& grid) {
+  if (row >= 0 && row < static_cast<int>(grid.height) && col >= 0 &&
+      col < static_cast<int>(grid.width)) {
+    return true;
+  }
+  return false;
+}
+
+void natural_programID_update(creature_t& target) {
+  target.programID = (target.programID + 1) % target.species->programSize;
+  if (target.programID == 0) {
+    target.programID = target.species->programSize;
+  }
+}
+
+void hop(creature_t& target, grid_t& grid) {
+  int direction_deltas[4][2] = {
+      {0, 1},   // EAST (right)
+      {1, 0},   // SOUTH (down)
+      {0, -1},  // WEST (left)
+      {-1, 0}   // NORTH (up)
+  };
+  int direction_index =
+      target.direction;  // Assuming direction is an enum or integer 0-3
+  // Calculate new row and column based on direction
+  int new_r = target.location.r + direction_deltas[direction_index][0];
+  int new_c = target.location.c + direction_deltas[direction_index][1];
+  // check feasibility
+  if (check_point_inside(new_r, new_c, grid) &&
+      grid.squares[new_r][new_c] == nullptr) {
+    // update location
+    grid.squares[new_r][new_c] = &target;
+    grid.squares[target.location.r][target.location.c] = nullptr;
+    target.location.r = new_r;
+    target.location.c = new_c;
+  }
+  natural_programID_update(target);
+}
+
+void left(creature_t& target) {
+  switch (target.direction) {
+    case EAST:
+      target.direction = NORTH;
+      break;
+    case NORTH:
+      target.direction = WEST;
+      break;
+    case WEST:
+      target.direction = SOUTH;
+      break;
+    case SOUTH:
+      target.direction = EAST;
+      break;
+    default:
+      break;
+  }
+  natural_programID_update(target);
+}
+
+void right(creature_t& target) {
+  switch (target.direction) {
+    case EAST:
+      target.direction = SOUTH;
+      break;
+    case NORTH:
+      target.direction = EAST;
+      break;
+    case WEST:
+      target.direction = NORTH;
+      break;
+    case SOUTH:
+      target.direction = WEST;
+      break;
+    default:
+      break;
+  }
+  natural_programID_update(target);
+}
+
+void print_grid(const grid_t& grid) {
+  for (unsigned int i = 0; i < grid.height; i++) {
+    for (unsigned int j = 0; j < grid.width; j++) {
+      if (grid.squares[i][j] == nullptr) {
+        std::cout << "____";
+      } else {
+        std::cout << species_name_to_string(*grid.squares[i][j]);
+      }
+      std::cout << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+
+void infect(creature_t& target, grid_t& grid, species_t list[]) {
+  // Define direction deltas for EAST, WEST, NORTH, SOUTH
+  int direction_deltas[4][2] = {
+      {0, 1},   // EAST (right)
+      {1, 0},   // SOUTH (down)
+      {0, -1},  // WEST (left)
+      {-1, 0}   // NORTH (up)
+  };
+  int direction_index =
+      target.direction;  // Assuming direction is an enum or integer 0-3
+  // Calculate new row and column based on direction
+  int new_r = target.location.r + direction_deltas[direction_index][0];
+  int new_c = target.location.c + direction_deltas[direction_index][1];
+  // Ensure the new location is within bounds and not nullptr
+  if (check_point_inside(new_r, new_c, grid) &&
+      grid.squares[new_r][new_c] != nullptr) {
+    grid.squares[new_r][new_c]->species = target.species;
+    grid.squares[new_r][new_c]->programID = 1;
+  }
+  natural_programID_update(target);
+}
+
+void ifempty(creature_t& target, grid_t& grid, unsigned int step) {
+  int direction_deltas[4][2] = {
+      {0, 1},   // EAST (right)
+      {1, 0},   // SOUTH (down)
+      {0, -1},  // WEST (left)
+      {-1, 0}   // NORTH (up)
+  };
+  int direction_index = target.direction;
+  int new_r = target.location.r + direction_deltas[direction_index][0];
+  int new_c = target.location.c + direction_deltas[direction_index][1];
+  if (check_point_inside(new_r, new_c, grid) &&
+      grid.squares[new_r][new_c] == nullptr) {
+    target.programID = step;
+  } else {
+    natural_programID_update(target);
+  }
+}
+
+void ifwall(creature_t& target, grid_t& grid, unsigned int step) {
+  int direction_deltas[4][2] = {
+      {0, 1},   // EAST (right)
+      {1, 0},   // SOUTH (down)
+      {0, -1},  // WEST (left)
+      {-1, 0}   // NORTH (up)
+  };
+  int direction_index = target.direction;
+  int new_r = target.location.r + direction_deltas[direction_index][0];
+  int new_c = target.location.c + direction_deltas[direction_index][1];
+  if (new_r == -1 || new_r == static_cast<int>(grid.height) || new_c == -1 ||
+      new_c == static_cast<int>(grid.width)) {
+    target.programID = step;
+  } else {
+    natural_programID_update(target);
+  }
+}
+
+void ifsame(creature_t& target, grid_t& grid, unsigned int step) {
+  int direction_deltas[4][2] = {
+      {0, 1},   // EAST (right)
+      {1, 0},   // SOUTH (down)
+      {0, -1},  // WEST (left)
+      {-1, 0}   // NORTH (up)
+  };
+  int direction_index = target.direction;
+  int new_r = target.location.r + direction_deltas[direction_index][0];
+  int new_c = target.location.c + direction_deltas[direction_index][1];
+  if (check_point_inside(new_r, new_c, grid) &&
+      grid.squares[new_r][new_c] != nullptr &&
+      grid.squares[new_r][new_c]->species->name == target.species->name) {
+    target.programID = step;
+  } else {
+    natural_programID_update(target);
+  }
+}
+
+void ifenemy(creature_t& target, grid_t& grid, unsigned int step) {
+  int direction_deltas[4][2] = {
+      {0, 1},   // EAST (right)
+      {1, 0},   // SOUTH (down)
+      {0, -1},  // WEST (left)
+      {-1, 0}   // NORTH (up)
+  };
+  int direction_index = target.direction;
+  int new_r = target.location.r + direction_deltas[direction_index][0];
+  int new_c = target.location.c + direction_deltas[direction_index][1];
+  if (check_point_inside(new_r, new_c, grid) &&
+      grid.squares[new_r][new_c] != nullptr &&
+      grid.squares[new_r][new_c]->species->name != target.species->name) {
+    target.programID = step;
+  } else {
+    natural_programID_update(target);
+  }
+}
+
+void go(creature_t& target, unsigned int step) { target.programID = step; }
+
+void take_action(creature_t& target, world_t& world) {
+  opcode_t action = target.species->program[target.programID - 1].op;
+  unsigned int address = target.species->program[target.programID - 1].address;
+  std::cout << "Instruction " << target.programID << ": " << opName[action];
+  if (address == 0) {
+    std::cout << std::endl;
+  } else {
+    std::cout << " " << address << std::endl;
+  }
+  switch (action) {
+    case HOP:
+      hop(target, world.grid);
+      break;
+    case LEFT:
+      left(target);
+      break;
+    case RIGHT:
+      right(target);
+      break;
+    case INFECT:
+      infect(target, world.grid, world.species);
+      break;
+    case IFEMPTY:
+      ifempty(target, world.grid,
+              target.species->program[target.programID - 1].address);
+      break;
+    case IFENEMY:
+      ifenemy(target, world.grid,
+              target.species->program[target.programID - 1].address);
+      break;
+    case IFSAME:
+      ifsame(target, world.grid,
+             target.species->program[target.programID - 1].address);
+      break;
+    case IFWALL:
+      ifwall(target, world.grid,
+             target.species->program[target.programID - 1].address);
+      break;
+    case GO:
+      go(target, target.species->program[target.programID - 1].address);
+      break;
+    default:
+      break;
+  }
+}
+
+void simulate(world_t& world, int rounds) {
+  for (int r = 0; r < rounds; r++) {
+    std::cout << "Round " << (r + 1) << std::endl;
+    for (unsigned int i = 0; i < world.numCreatures; i++) {
+      species_t* current_creature_species = world.creatures[i].species;
+      opcode_t current_op =
+          current_creature_species->program[world.creatures[i].programID - 1]
+              .op;
+      std::cout << "Creature (" << current_creature_species->name << " "
+                << directName[world.creatures[i].direction] << " "
+                << world.creatures[i].location.r << " "
+                << world.creatures[i].location.c
+                << ") takes action:" << std::endl;
+      while (current_op != HOP && current_op != LEFT && current_op != RIGHT &&
+             current_op != INFECT) {
+        take_action(world.creatures[i], world);
+        current_creature_species = world.creatures[i].species;
+        current_op =
+            current_creature_species->program[world.creatures[i].programID - 1]
+                .op;
+      }
+      // Now, execute the final action and stop if it's one of HOP, LEFT, RIGHT,
+      // INFECT
+      if (current_op == HOP || current_op == LEFT || current_op == RIGHT ||
+          current_op == INFECT) {
+        take_action(world.creatures[i], world);  // Take the final action
+      }
+      print_grid(world.grid);
+    }
+  }
 }
