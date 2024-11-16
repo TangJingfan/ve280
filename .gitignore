@@ -1,8 +1,11 @@
 !*.cpp
-!*.sh
+!.sh
 !*.pdf
 !*.h
 !Makefile
+!ex[1-7]
+!p[1-5]
+
 
 *
 **
