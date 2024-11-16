@@ -1,7 +1,7 @@
-!.cpp
-!.sh
-!.pdf
-!.h
+!*.cpp
+!*.sh
+!*.pdf
+!*.h
 !Makefile
 
 *
