@@ -16,6 +16,11 @@ chmod +x script.sh
 ```shell
 make
 ```
+or
+
+```shell
+g++ ex.cpp dep.cpp ...
+```
 
 ## Description
 - Exercise 1
