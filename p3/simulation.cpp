@@ -61,7 +61,7 @@ static int read_height_from_line(std::ifstream& file) {
 }
 
 bool check_width_legal(int width, world_t world) {
-  if (width < 1 || width >= static_cast<int>(MAXWIDTH)) {
+  if (width < 1 || width > static_cast<int>(MAXWIDTH)) {
     std::cout << "Error: The grid width is illegal!" << std::endl;
     return false;
   }
@@ -69,7 +69,7 @@ bool check_width_legal(int width, world_t world) {
 }
 
 bool check_height_legal(int height, world_t world) {
-  if (height < 1 || height >= static_cast<int>(MAXHEIGHT)) {
+  if (height < 1 || height > static_cast<int>(MAXHEIGHT)) {
     std::cout << "Error: The grid height is illegal!" << std::endl;
     return false;
   }
@@ -84,18 +84,6 @@ static int read_width_from_line(std::ifstream& file) {
     line_stream >> value;
   }
   return value;
-}
-
-static int read_file_lines(const std::string& filename) {
-  std::ifstream read_file;
-  read_file.open(filename);
-  int line_number = 0;
-  std::string line;
-  while (std::getline(read_file, line)) {
-    ++line_number;
-  }
-  read_file.close();
-  return line_number;
 }
 
 static int read_file_lines_until_empty(const std::string& filename) {
@@ -160,7 +148,7 @@ static bool check_species_num(unsigned int num) {
   return true;
 }
 
-static bool check_creatures_legal(world_t world) {
+static bool get_creatures_and_check_legal(world_t& world) {
   for (unsigned int j = 0; j < world.numCreatures; j++) {
     int row = world.creatures[j].location.r;
     int col = world.creatures[j].location.c;
@@ -205,8 +193,8 @@ bool init_world(world_t& world, const std::string& summary_file,
   world.grid.height = height;
   world.grid.width = width;
   // get number of species and creature respectively
-  world.numSpecies = read_file_lines(summary_file) - 1;
-  world.numCreatures = read_file_lines(world_file) - 2;
+  world.numSpecies = read_file_lines_until_empty(summary_file) - 1;
+  world.numCreatures = read_file_lines_until_empty(world_file) - 2;
   std::ifstream read_summary;
   read_summary.open(summary_file);
   // get the directory of program
@@ -305,20 +293,16 @@ bool init_world(world_t& world, const std::string& summary_file,
       return false;
     };
   }
+  read_world.close();
   // init the grid
   for (unsigned int k = 0; k < world.grid.height; k++) {
     for (unsigned int l = 0; l < world.grid.width; l++) {
       world.grid.squares[k][l] = nullptr;
     }
   }
-  if (!check_creatures_legal(world)) {
+  if (!get_creatures_and_check_legal(world)) {
     return false;
   };
-  // put creatures into grid
-  for (unsigned int num = 0; num < world.numCreatures; num++) {
-    world.grid.squares[world.creatures[num].location.r]
-                      [world.creatures[num].location.c] = &world.creatures[num];
-  }
   return true;
 }
 
@@ -430,7 +414,8 @@ static void infect(creature_t& target, grid_t& grid, species_t list[]) {
   int new_c = target.location.c + direction_deltas[direction_index][1];
   // Ensure the new location is within bounds and not nullptr
   if (check_point_inside(new_r, new_c, grid) &&
-      grid.squares[new_r][new_c] != nullptr) {
+      grid.squares[new_r][new_c] != nullptr &&
+      grid.squares[new_r][new_c]->species->name != target.species->name) {
     grid.squares[new_r][new_c]->species = target.species;
     grid.squares[new_r][new_c]->programID = 1;
   }
