@@ -593,12 +593,9 @@ void simulate(world_t& world, int rounds, bool print_verbose) {
             current_creature_species->program[world.creatures[i].programID - 1]
                 .op;
       }
-      // Now, execute the final action and stop if it's one of HOP, LEFT, RIGHT,
-      // INFECT
       if (current_op == HOP || current_op == LEFT || current_op == RIGHT ||
           current_op == INFECT) {
-        take_action(world.creatures[i], world,
-                    print_verbose);  // Take the final action
+        take_action(world.creatures[i], world, print_verbose);
       }
       if (!print_verbose) {
         std::cout << opName[current_op] << std::endl;
