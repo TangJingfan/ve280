@@ -7,7 +7,7 @@ bookInventory::bookInventory() : numBooks(0) {
   for (int i = 0; i < MAX_BOOKS; i++) {
     books[i] = Book();
   }
-};
+}
 
 void bookInventory::addBook(const Book &book) {
   if (numBooks == MAX_BOOKS) {
@@ -18,7 +18,7 @@ void bookInventory::addBook(const Book &book) {
 }
 
 int bookInventory::searchBook(const std::string &title) const {
-  for (int i = 0; i < numBooks; i++) {
+  for (int i = 0; i < static_cast<int>(numBooks); i++) {
     if (books[i].title == title) {
       return i + 1;
     }
@@ -30,7 +30,7 @@ void bookInventory::setBook(const Book &book, int ID) {
   if (!(1 <= ID && ID <= MAX_BOOKS)) {
     throw Exception("Invalid book ID.");
   }
-  if (ID > numBooks) {
+  if (ID > static_cast<int>(numBooks)) {
     books[numBooks] = book;
     numBooks++;
   } else {
@@ -39,17 +39,17 @@ void bookInventory::setBook(const Book &book, int ID) {
 }
 
 Book bookInventory::viewBook(int ID) const {
-  if (!(1 <= ID && ID <= numBooks)) {
+  if (!(1 <= ID && ID <= static_cast<int>(numBooks))) {
     throw Exception("Invalid book ID.");
   }
   return books[ID - 1];
 }
 
 void bookInventory::removeBook(int ID) {
-  if (!(1 <= ID && ID <= numBooks)) {
+  if (!(1 <= ID && ID <= static_cast<int>(numBooks))) {
     throw Exception("Invalid book ID.");
   }
-  for (int i = ID; i < numBooks; i++) {
+  for (int i = ID; i < static_cast<int>(numBooks); i++) {
     books[i - 1] = books[i];
   }
   books[numBooks - 1] = Book();
@@ -60,7 +60,7 @@ void bookInventory::printInventory() const {
   if (numBooks == 0) {
     throw Exception("The inventory is empty.");
   }
-  for (int i = 0; i < numBooks; i++) {
+  for (int i = 0; i < static_cast<int>(numBooks); i++) {
     std::cout << "Book ID: " << i + 1 << std::endl;
     std::cout << "Title: " << books[i].title << std::endl;
     std::cout << "Author: " << books[i].author << std::endl;
@@ -70,5 +70,42 @@ void bookInventory::printInventory() const {
     } else {
       std::cout << "not available" << std::endl;
     }
+  }
+}
+
+library::library() : bookInventory() {}
+
+void library::borrowBook(int ID) {
+  if (!(1 <= ID && ID <= static_cast<int>(numBooks))) {
+    throw Exception("Invalid book ID.");
+  }
+  if (!books[ID - 1].isAvailable) {
+    throw Exception("Book " + books[ID - 1].title + " is not available.");
+  }
+  books[ID - 1].isAvailable = false;
+}
+
+void library::returnBook(int ID) {
+  if (!(1 <= ID && ID <= static_cast<int>(numBooks))) {
+    throw Exception("Invalid book ID.");
+  }
+  if (books[ID - 1].isAvailable) {
+    throw Exception("Book " + books[ID - 1].title + " is already available.");
+  }
+  books[ID - 1].isAvailable = true;
+}
+
+void library::listBorrowed() const {
+  bool is_all_available = true;
+  for (int i = 0; i < static_cast<int>(numBooks); i++) {
+    if (!books[i].isAvailable) {
+      is_all_available = false;
+      std::cout << "Book ID: " << i + 1 << std::endl;
+      std::cout << "Title: " << books[i].title << std::endl;
+      std::cout << "Author: " << books[i].author << std::endl;
+    }
+  }
+  if (is_all_available) {
+    throw Exception("All books are available.");
   }
 }
