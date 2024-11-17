@@ -53,10 +53,6 @@ static int read_height_from_line(std::ifstream& file) {
     std::istringstream line_stream(line_content);
     line_stream >> value;
   }
-  if (value < 1) {
-    std::cout << "Error: The grid height is illegal!" << std::endl;
-    exit(1);
-  }
   return value;
 }
 
