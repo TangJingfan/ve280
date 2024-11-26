@@ -1,6 +1,10 @@
 #include "player.h"
 #include "card.h"
 
+#include <iostream>
+
+using namespace std;
+
 class simple_player : public Player {
 public:
   int bet(unsigned int bankroll, unsigned int minimum) override {
@@ -11,8 +15,7 @@ public:
     if (!player.handValue().soft) {
       if (player.handValue().count <= 11) {
         return true;
-      } else if (player.handValue().count == 12 &&
-                 (FOUR <= dealer.spot && dealer.spot <= SIX)) {
+      } else if (player.handValue().count == 12) {
         return !(FOUR <= dealer.spot && dealer.spot <= SIX);
       } else if (13 <= player.handValue().count &&
                  player.handValue().count <= 16) {

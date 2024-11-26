@@ -115,9 +115,6 @@ int main(int argc, char *argv[]) {
   // init hand for player and dealer
   Hand player_hand, dealer_hand;
 
-  // init dealer card
-  Card dealer_up_card, dealer_hole_card;
-
   // simulation of the game
   while (bankroll >= minimum_bet && ++current_hands <= target_hands) {
     // init the hand
@@ -137,6 +134,9 @@ int main(int argc, char *argv[]) {
     int wager = player->bet(bankroll, minimum_bet);
     cout << "Player bets " << wager << endl;
 
+    // init dealer card
+    Card dealer_up_card, dealer_hole_card;
+
     // deal the initial four cards
     deal_initial_four_cards(deck_for_game, player_hand, dealer_hand, player,
                             dealer_up_card, dealer_hole_card);
@@ -151,6 +151,8 @@ int main(int argc, char *argv[]) {
       player_hand.addCard(next_card_for_player);
       player->expose(next_card_for_player);
     }
+
+    cout << "Player's total is " << player_hand.handValue().count << endl;
 
     // check whether player busts
     if (check_bust(player_hand)) {

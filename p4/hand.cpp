@@ -1,8 +1,8 @@
+#include "hand.h"
 #include "card.h"
 
-#include "hand.h"
 
-Hand::Hand() : curValue({0, false}) {};
+Hand::Hand() : curValue({0, false}){};
 
 void Hand::discardAll() {
   HandValue reset_handvalue;
