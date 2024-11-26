@@ -1,7 +1,6 @@
+#include "deck.h"
 #include "card.h"
-
 #include <cstdlib>
-#include <deck.h>
 
 Deck::Deck() : next(0) {
   int index = 0;
@@ -55,3 +54,5 @@ Card Deck::deal() {
   }
   return deck[next++];
 }
+
+int Deck::cardsLeft() { return DeckSize - next; }
