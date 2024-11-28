@@ -24,7 +24,7 @@ bool check_round(int round) {
   return true;
 }
 
-bool check_open_file(const std::string& file) {
+bool check_open_file(const std::string &file) {
   std::ifstream world_read;
   world_read.open(file);
   if (!world_read) {
@@ -36,17 +36,17 @@ bool check_open_file(const std::string& file) {
   return true;
 }
 
-bool check_open_world(const std::string& world_file,
-                      bool (*fn)(const std::string& file)) {
+bool check_open_world(const std::string &world_file,
+                      bool (*fn)(const std::string &file)) {
   return fn(world_file);
 }
 
-bool check_open_summary(const std::string& summary_file,
-                        bool (*fn)(const std::string& file)) {
+bool check_open_summary(const std::string &summary_file,
+                        bool (*fn)(const std::string &file)) {
   return fn(summary_file);
 }
 
-static int read_height_from_line(std::ifstream& file) {
+static int read_height_from_line(std::ifstream &file) {
   std::string line_content;
   int value;
   if (getline(file, line_content)) {
@@ -72,7 +72,7 @@ bool check_height_legal(int height, world_t world) {
   return true;
 }
 
-static int read_width_from_line(std::ifstream& file) {
+static int read_width_from_line(std::ifstream &file) {
   std::string line_content;
   int value;
   if (getline(file, line_content)) {
@@ -82,7 +82,7 @@ static int read_width_from_line(std::ifstream& file) {
   return value;
 }
 
-static int read_file_lines_until_empty(const std::string& filename) {
+static int read_file_lines_until_empty(const std::string &filename) {
   std::ifstream read_file;
   read_file.open(filename);
   int line_count = 0;
@@ -97,8 +97,8 @@ static int read_file_lines_until_empty(const std::string& filename) {
   return line_count;
 }
 
-static bool check_program_lines(const std::string& filename,
-                                const std::string& species_name) {
+static bool check_program_lines(const std::string &filename,
+                                const std::string &species_name) {
   unsigned int lines = read_file_lines_until_empty(filename);
   if (lines > MAXPROGRAM) {
     std::cout << "Error: Too many instructions for species " << species_name
@@ -110,7 +110,7 @@ static bool check_program_lines(const std::string& filename,
   return true;
 }
 
-static std::string species_name_to_string(creature_t& target) {
+static std::string species_name_to_string(creature_t &target) {
   return target.species->name.substr(0, 2) + "_" +
          directShortName[target.direction];
 }
@@ -125,7 +125,7 @@ static bool check_creature_num(unsigned int num) {
   return true;
 }
 
-static int string_to_species(const std::string& species_name,
+static int string_to_species(const std::string &species_name,
                              species_t species[], unsigned int species_nums) {
   for (unsigned int i = 0; i < species_nums; i++) {
     if (species_name == species[i].name) {
@@ -138,13 +138,14 @@ static int string_to_species(const std::string& species_name,
 static bool check_species_num(unsigned int num) {
   if (num > MAXSPECIES) {
     std::cout << "Error: Too many species!" << std::endl;
-    std::cout << "Maximal number of species is " << MAXSPECIES << std::endl;
+    std::cout << "Maximal number of species is " << MAXSPECIES << "."
+              << std::endl;
     return false;
   }
   return true;
 }
 
-static bool get_creatures_and_check_legal(world_t& world) {
+static bool get_creatures_and_check_legal(world_t &world) {
   for (unsigned int j = 0; j < world.numCreatures; j++) {
     int row = world.creatures[j].location.r;
     int col = world.creatures[j].location.c;
@@ -173,8 +174,8 @@ static bool get_creatures_and_check_legal(world_t& world) {
   return true;
 }
 
-bool init_world(world_t& world, const std::string& summary_file,
-                const std::string& world_file) {
+bool init_world(world_t &world, const std::string &summary_file,
+                const std::string &world_file) {
   std::ifstream read_world;
   read_world.open(world_file);
   // get height and width of this world
@@ -302,7 +303,7 @@ bool init_world(world_t& world, const std::string& summary_file,
   return true;
 }
 
-static bool check_point_inside(int& row, int& col, grid_t& grid) {
+static bool check_point_inside(int &row, int &col, grid_t &grid) {
   if (row >= 0 && row < static_cast<int>(grid.height) && col >= 0 &&
       col < static_cast<int>(grid.width)) {
     return true;
@@ -310,22 +311,22 @@ static bool check_point_inside(int& row, int& col, grid_t& grid) {
   return false;
 }
 
-static void natural_programID_update(creature_t& target) {
+static void natural_programID_update(creature_t &target) {
   target.programID = (target.programID + 1) % target.species->programSize;
   if (target.programID == 0) {
     target.programID = target.species->programSize;
   }
 }
 
-static void hop(creature_t& target, grid_t& grid) {
+static void hop(creature_t &target, grid_t &grid) {
   int direction_deltas[4][2] = {
-      {0, 1},   // EAST (right)
-      {1, 0},   // SOUTH (down)
-      {0, -1},  // WEST (left)
-      {-1, 0}   // NORTH (up)
+      {0, 1},  // EAST (right)
+      {1, 0},  // SOUTH (down)
+      {0, -1}, // WEST (left)
+      {-1, 0}  // NORTH (up)
   };
   int direction_index =
-      target.direction;  // Assuming direction is an enum or integer 0-3
+      target.direction; // Assuming direction is an enum or integer 0-3
   // Calculate new row and column based on direction
   int new_r = target.location.r + direction_deltas[direction_index][0];
   int new_c = target.location.c + direction_deltas[direction_index][1];
@@ -341,47 +342,47 @@ static void hop(creature_t& target, grid_t& grid) {
   natural_programID_update(target);
 }
 
-static void left(creature_t& target) {
+static void left(creature_t &target) {
   switch (target.direction) {
-    case EAST:
-      target.direction = NORTH;
-      break;
-    case NORTH:
-      target.direction = WEST;
-      break;
-    case WEST:
-      target.direction = SOUTH;
-      break;
-    case SOUTH:
-      target.direction = EAST;
-      break;
-    default:
-      break;
+  case EAST:
+    target.direction = NORTH;
+    break;
+  case NORTH:
+    target.direction = WEST;
+    break;
+  case WEST:
+    target.direction = SOUTH;
+    break;
+  case SOUTH:
+    target.direction = EAST;
+    break;
+  default:
+    break;
   }
   natural_programID_update(target);
 }
 
-static void right(creature_t& target) {
+static void right(creature_t &target) {
   switch (target.direction) {
-    case EAST:
-      target.direction = SOUTH;
-      break;
-    case NORTH:
-      target.direction = EAST;
-      break;
-    case WEST:
-      target.direction = NORTH;
-      break;
-    case SOUTH:
-      target.direction = WEST;
-      break;
-    default:
-      break;
+  case EAST:
+    target.direction = SOUTH;
+    break;
+  case NORTH:
+    target.direction = EAST;
+    break;
+  case WEST:
+    target.direction = NORTH;
+    break;
+  case SOUTH:
+    target.direction = WEST;
+    break;
+  default:
+    break;
   }
   natural_programID_update(target);
 }
 
-void print_grid(const grid_t& grid) {
+void print_grid(const grid_t &grid) {
   for (unsigned int i = 0; i < grid.height; i++) {
     for (unsigned int j = 0; j < grid.width; j++) {
       if (grid.squares[i][j] == nullptr) {
@@ -395,16 +396,16 @@ void print_grid(const grid_t& grid) {
   }
 }
 
-static void infect(creature_t& target, grid_t& grid, species_t list[]) {
+static void infect(creature_t &target, grid_t &grid, species_t list[]) {
   // Define direction deltas for EAST, WEST, NORTH, SOUTH
   int direction_deltas[4][2] = {
-      {0, 1},   // EAST (right)
-      {1, 0},   // SOUTH (down)
-      {0, -1},  // WEST (left)
-      {-1, 0}   // NORTH (up)
+      {0, 1},  // EAST (right)
+      {1, 0},  // SOUTH (down)
+      {0, -1}, // WEST (left)
+      {-1, 0}  // NORTH (up)
   };
   int direction_index =
-      target.direction;  // Assuming direction is an enum or integer 0-3
+      target.direction; // Assuming direction is an enum or integer 0-3
   // Calculate new row and column based on direction
   int new_r = target.location.r + direction_deltas[direction_index][0];
   int new_c = target.location.c + direction_deltas[direction_index][1];
@@ -418,12 +419,12 @@ static void infect(creature_t& target, grid_t& grid, species_t list[]) {
   natural_programID_update(target);
 }
 
-static void ifempty(creature_t& target, grid_t& grid, unsigned int step) {
+static void ifempty(creature_t &target, grid_t &grid, unsigned int step) {
   int direction_deltas[4][2] = {
-      {0, 1},   // EAST (right)
-      {1, 0},   // SOUTH (down)
-      {0, -1},  // WEST (left)
-      {-1, 0}   // NORTH (up)
+      {0, 1},  // EAST (right)
+      {1, 0},  // SOUTH (down)
+      {0, -1}, // WEST (left)
+      {-1, 0}  // NORTH (up)
   };
   int direction_index = target.direction;
   int new_r = target.location.r + direction_deltas[direction_index][0];
@@ -436,12 +437,12 @@ static void ifempty(creature_t& target, grid_t& grid, unsigned int step) {
   }
 }
 
-static void ifwall(creature_t& target, grid_t& grid, unsigned int step) {
+static void ifwall(creature_t &target, grid_t &grid, unsigned int step) {
   int direction_deltas[4][2] = {
-      {0, 1},   // EAST (right)
-      {1, 0},   // SOUTH (down)
-      {0, -1},  // WEST (left)
-      {-1, 0}   // NORTH (up)
+      {0, 1},  // EAST (right)
+      {1, 0},  // SOUTH (down)
+      {0, -1}, // WEST (left)
+      {-1, 0}  // NORTH (up)
   };
   int direction_index = target.direction;
   int new_r = target.location.r + direction_deltas[direction_index][0];
@@ -454,12 +455,12 @@ static void ifwall(creature_t& target, grid_t& grid, unsigned int step) {
   }
 }
 
-static void ifsame(creature_t& target, grid_t& grid, unsigned int step) {
+static void ifsame(creature_t &target, grid_t &grid, unsigned int step) {
   int direction_deltas[4][2] = {
-      {0, 1},   // EAST (right)
-      {1, 0},   // SOUTH (down)
-      {0, -1},  // WEST (left)
-      {-1, 0}   // NORTH (up)
+      {0, 1},  // EAST (right)
+      {1, 0},  // SOUTH (down)
+      {0, -1}, // WEST (left)
+      {-1, 0}  // NORTH (up)
   };
   int direction_index = target.direction;
   int new_r = target.location.r + direction_deltas[direction_index][0];
@@ -473,12 +474,12 @@ static void ifsame(creature_t& target, grid_t& grid, unsigned int step) {
   }
 }
 
-static void ifenemy(creature_t& target, grid_t& grid, unsigned int step) {
+static void ifenemy(creature_t &target, grid_t &grid, unsigned int step) {
   int direction_deltas[4][2] = {
-      {0, 1},   // EAST (right)
-      {1, 0},   // SOUTH (down)
-      {0, -1},  // WEST (left)
-      {-1, 0}   // NORTH (up)
+      {0, 1},  // EAST (right)
+      {1, 0},  // SOUTH (down)
+      {0, -1}, // WEST (left)
+      {-1, 0}  // NORTH (up)
   };
   int direction_index = target.direction;
   int new_r = target.location.r + direction_deltas[direction_index][0];
@@ -492,11 +493,11 @@ static void ifenemy(creature_t& target, grid_t& grid, unsigned int step) {
   }
 }
 
-static void go(creature_t& target, unsigned int step) {
+static void go(creature_t &target, unsigned int step) {
   target.programID = step;
 }
 
-static void take_action(creature_t& target, world_t& world,
+static void take_action(creature_t &target, world_t &world,
                         bool print_verbose) {
   opcode_t action = target.species->program[target.programID - 1].op;
   unsigned int address = target.species->program[target.programID - 1].address;
@@ -509,47 +510,47 @@ static void take_action(creature_t& target, world_t& world,
     }
   }
   switch (action) {
-    case HOP:
-      hop(target, world.grid);
-      break;
-    case LEFT:
-      left(target);
-      break;
-    case RIGHT:
-      right(target);
-      break;
-    case INFECT:
-      infect(target, world.grid, world.species);
-      break;
-    case IFEMPTY:
-      ifempty(target, world.grid,
-              target.species->program[target.programID - 1].address);
-      break;
-    case IFENEMY:
-      ifenemy(target, world.grid,
-              target.species->program[target.programID - 1].address);
-      break;
-    case IFSAME:
-      ifsame(target, world.grid,
-             target.species->program[target.programID - 1].address);
-      break;
-    case IFWALL:
-      ifwall(target, world.grid,
-             target.species->program[target.programID - 1].address);
-      break;
-    case GO:
-      go(target, target.species->program[target.programID - 1].address);
-      break;
-    default:
-      break;
+  case HOP:
+    hop(target, world.grid);
+    break;
+  case LEFT:
+    left(target);
+    break;
+  case RIGHT:
+    right(target);
+    break;
+  case INFECT:
+    infect(target, world.grid, world.species);
+    break;
+  case IFEMPTY:
+    ifempty(target, world.grid,
+            target.species->program[target.programID - 1].address);
+    break;
+  case IFENEMY:
+    ifenemy(target, world.grid,
+            target.species->program[target.programID - 1].address);
+    break;
+  case IFSAME:
+    ifsame(target, world.grid,
+           target.species->program[target.programID - 1].address);
+    break;
+  case IFWALL:
+    ifwall(target, world.grid,
+           target.species->program[target.programID - 1].address);
+    break;
+  case GO:
+    go(target, target.species->program[target.programID - 1].address);
+    break;
+  default:
+    break;
   }
 }
 
-void simulate(world_t& world, int rounds, bool print_verbose) {
+void simulate(world_t &world, int rounds, bool print_verbose) {
   for (int r = 0; r < rounds; r++) {
     std::cout << "Round " << (r + 1) << std::endl;
     for (unsigned int i = 0; i < world.numCreatures; i++) {
-      species_t* current_creature_species = world.creatures[i].species;
+      species_t *current_creature_species = world.creatures[i].species;
       opcode_t current_op =
           current_creature_species->program[world.creatures[i].programID - 1]
               .op;
