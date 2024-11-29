@@ -150,6 +150,8 @@ int main(int argc, char *argv[]) {
       Card next_card_for_player = deck_for_game.deal();
       player_hand.addCard(next_card_for_player);
       player->expose(next_card_for_player);
+      cout << "Player dealt " << SpotNames[next_card_for_player.spot] << " of "
+           << SuitNames[next_card_for_player.suit] << endl;
     }
 
     cout << "Player's total is " << player_hand.handValue().count << endl;
