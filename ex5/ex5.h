@@ -12,9 +12,7 @@ class Exception {
 public:
   Exception(const std::string &message) : message(message) {}
 
-  std::string what() const {
-    return message;
-  }
+  std::string what() const { return message; }
 };
 
 struct Book {
@@ -25,7 +23,8 @@ struct Book {
   Book() : title(""), author("") {}
 
   // Constructor with parameters
-  Book(const std::string &title, const std::string &author) : title(title), author(author) {}
+  Book(const std::string &title, const std::string &author)
+      : title(title), author(author) {}
 };
 
 class bookInventory {
@@ -66,45 +65,35 @@ public:
    *
    * @return The number of books.
    */
-  int getNumBooks() const {
-    return this->numBooks;
-  }
+  int getNumBooks() const { return this->numBooks; }
 
   /**
    * @brief Returns if the inventory is empty.
    *
    * @return True if the inventory is empty, false otherwise.
    */
-  bool isEmpty() const {
-    return this->empty;
-  }
+  bool isEmpty() const { return this->empty; }
 
   /**
    * @brief Returns the size of the books array.
    *
    * @return The size of the books array.
    */
-  unsigned int getSize() const {
-    return this->size;
-  }
+  unsigned int getSize() const { return this->size; }
 
   /**
    * @brief Sets the number of books in the inventory.
    *
    * @param numBooks The number of books.
    */
-  void setNumBooks(unsigned int numBooks) {
-    this->numBooks = numBooks;
-  }
+  void setNumBooks(unsigned int numBooks) { this->numBooks = numBooks; }
 
   /**
    * @brief Sets if the inventory is empty.
    *
    * @param empty True if the inventory is empty, false otherwise.
    */
-  void setEmpty(bool empty) {
-    this->empty = empty;
-  }
+  void setEmpty(bool empty) { this->empty = empty; }
 
   /**
    * @brief Sets a book in the inventory at a specific index.
@@ -112,9 +101,7 @@ public:
    * @param book The book to be set.
    * @param ID The ID of the book to be set. It is guaranteed to be valid.
    */
-  void setBook(const Book &book, int ID) {
-    books[ID - 1] = book;
-  }
+  void setBook(const Book &book, int ID) { books[ID - 1] = book; }
 
   /**
    * TODO: Implement the invariant checker.
@@ -147,7 +134,8 @@ public:
   /**
    * @brief Removes a book from the inventory.
    *
-   * @param ID The ID of the book to be removed. The ID is the index of the book in the books array + 1.
+   * @param ID The ID of the book to be removed. The ID is the index of the book
+   * in the books array + 1.
    * @throw Exception if the ID is invalid.
    */
   void removeBook(int ID);
