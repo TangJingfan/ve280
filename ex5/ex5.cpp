@@ -59,7 +59,7 @@ void bookInventory::addBook(const Book &book) {
 // Remove a book
 void bookInventory::removeBook(int ID) {
   if (ID < 1 || ID > static_cast<int>(numBooks)) {
-    throw Exception("Invalid ID.");
+    throw Exception("Invalid book ID.");
   }
   for (unsigned int i = ID - 1; i < numBooks - 1; i++) {
     books[i] = books[i + 1];
