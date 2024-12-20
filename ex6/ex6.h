@@ -26,14 +26,15 @@ public:
   BinaryTree();
 
   /**
-   * @brief Parameterized constructor to create a binary tree with a given value.
-   * The left and right subtrees are empty.
+   * @brief Parameterized constructor to create a binary tree with a given
+   * value. The left and right subtrees are empty.
    * @param val The value for the root node of the binary tree.
    */
   BinaryTree(int val);
 
   /**
-   * @brief Parameterized constructor to create a binary tree with given value and subtrees.
+   * @brief Parameterized constructor to create a binary tree with given value
+   * and subtrees.
    * @param val The value for the root node of the binary tree.
    * @param left The left subtree.
    * @param right The right subtree.
@@ -54,7 +55,8 @@ public:
   BinaryTree &operator=(const BinaryTree &other);
 
   /**
-   * @brief Destructor that cleans up the allocated resources of the binary tree.
+   * @brief Destructor that cleans up the allocated resources of the binary
+   * tree.
    */
   ~BinaryTree();
 
@@ -93,7 +95,8 @@ public:
   /**
    * @brief Overloaded output operator to print the binary tree.
    * Performs an in-order traversal of the binary tree and prints each value.
-   * In-order traversal visits the left subtree, then the root, and finally the right subtree.
+   * In-order traversal visits the left subtree, then the root, and finally the
+   * right subtree.
    *
    * For example, consider the following binary tree:
    *
