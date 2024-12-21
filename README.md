@@ -32,4 +32,12 @@ g++ ex.cpp dep.cpp ...
 - Exercise 3
     A terminal script that can encode a sentence and decode them, which will take argument `int argc` and `char* argv[]` from terminal. 
 - Project 3
-    A eco-system simulation. The behaviours of different species are realized.
+    A eco-system simulation. The behaviors of different species are realized.
+- Exercise 4
+    An updated library management system, using the concept of object-oriented programming.
+- Exercise 5
+    An updated library management system, with a function to check representation invarient.
+- Exercise 6
+    Binary tree with dynamic memory management.
+- Project 5
+    Two simulators with doubly-linked double-ended linked list.
