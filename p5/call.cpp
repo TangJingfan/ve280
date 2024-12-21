@@ -79,7 +79,7 @@ int main() {
   Call *current_call = nullptr;
   size_t eventIndex = 0;
 
-  // **打印初始 tick 0**
+  // print tick = 0
   print_answer_call(current_time);
 
   while (eventIndex < callList.size() || !platinum_queue.isEmpty() ||
