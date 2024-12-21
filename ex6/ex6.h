@@ -118,6 +118,8 @@ public:
 private:
   TreeNode *root;
 
+  BinaryTree(TreeNode *node);
+
   /**
    * @brief Recursively copies all nodes from another tree.
    * @param root The root node of the tree to copy.
